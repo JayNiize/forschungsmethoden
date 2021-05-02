@@ -29,9 +29,9 @@ def doScrape():
                     sleepTimer = random.uniform(3, 12)
                     print("Sleeping for: ", sleepTimer, "s")
                     sleep(sleepTimer)
-            sleepTimer = random.randint(30, 180)
-            print("Sleeping for: ", sleepTimer, "s")
-            sleep(sleepTimer)
+           # sleepTimer = random.randint(30, 180)
+           # print("Sleeping for: ", sleepTimer, "s")
+           # sleep(sleepTimer)
             forward = soup.find('li', attrs={'class': 'forward'})
             if forward is not None:
                 print("Next:", forward.findChild('a')['href'])

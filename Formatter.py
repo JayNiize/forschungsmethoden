@@ -10,29 +10,55 @@ path_to_save = "korpus/"
 
 def doFormat():
     crawled_files = [f for f in listdir(path) if isfile(join(path, f))]
-
     for file in crawled_files:
-        try:
-            content = open(os.path.abspath(path+file), encoding="utf-8", mode="r").read()
-            content = re.split("(caption-wrapper|sectionRelated)", content)
-            soup = BeautifulSoup(content[2])
-            speech_date_and_place_raw = soup.find('span', attrs={'class':'date'})
-            speech_date_and_place = ""
-            if speech_date_and_place_raw is not None:
-                speech_date_and_place = speech_date_and_place_raw.text
-            speech_content = soup.find('div', attrs={'class':None}).text
-
-            output = speech_date_and_place + "\n\n"+ speech_content
-            filename = file.replace('.html','').replace('SharedDocs_','')
-            with open(path_to_save+ filename, "w", encoding="utf-8") as saveFile:
-                saveFile.write(output)
-
-        except AttributeError:
-            print("Attribute Error on File: "+ file)
-
+        extractContent(file)
     print("finished")
 
 
+def extractContent(file):
+    try:
+        content = open(os.path.abspath(path + file), encoding="utf-8", mode="r").read()
+        soup = BeautifulSoup(content)
+        content = soupContent(soup)
+        if content is None:
+            raise AttributeError
+
+        speech_date_and_place = soupDate(soup)
+        if speech_date_and_place is None:
+            speech_date_and_place = ""
+
+        output = speech_date_and_place + "\n--------\n" + content
+        saveFile(file, output)
+
+    except AttributeError:
+        print("Attribute Error on File: " + file)
+
+
+def soupDate(soup):
+    if soup.find('span', attrs={'class': 'date'}) is not None:
+        return soup.find('span', attrs={'class': 'date'}).text
+
+    if soup.find('div', attrs={'class': 'article-metadata'}) is not None:
+        return soup.find('div', attrs={'class': 'article-metadata'}).text
+    return None
+
+
+def soupContent(soup):
+    for div in soup.find_all('div', {'class': None, 'id': None}):
+        try:
+            if div.parent.attrs['id'] == 'main-inner':
+                return div.text
+        except KeyError:
+            continue
+    print('Error - no main-inner found')
+    return None
+
+
+def saveFile(file, content):
+    filename = file.replace('.html', '').replace('SharedDocs_', '')
+    with open(path_to_save + filename, "w", encoding="utf-8") as saveFile:
+        saveFile.write(content)
+        print('saved file:' + filename)
 
 
 if __name__ == "__main__":
